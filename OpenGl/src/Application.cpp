@@ -11,7 +11,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1024, 768, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(1024, 768, "Jazda , Jazda", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -29,13 +29,16 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << "\n";
 
     float positions[6] = {
-        -0.5f,-0.5f,0.0f,0.5f,0.5f,-0.5f
+        -0.5f,-0.5f,0.5f,0.5f,0.5f,-0.5f
     };
 
     unsigned int buffer;
     glGenBuffers(1,&buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float),positions, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,2,GL_FLOAT, GL_FALSE , 2*sizeof(float),0);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

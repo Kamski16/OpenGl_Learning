@@ -93,6 +93,10 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(1024, 768, "w", NULL, NULL);
     if (!window)
@@ -110,7 +114,6 @@ int main(void)
         std::cout << "err";
     }
 
-
     std::cout << glGetString(GL_VERSION) << "\n";
 
     float positions[] = {
@@ -126,11 +129,14 @@ int main(void)
         2 , 3 , 0
     };
 
+    unsigned int vao;
+    glGenVertexArrays(1,&vao);
+    glBindVertexArray(vao);
 
     unsigned int buffer;
     glGenBuffers(1,&buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float),positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float),positions, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,2,GL_FLOAT, GL_FALSE , 2*sizeof(float),0);
@@ -141,7 +147,7 @@ int main(void)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
 
     ShaderProgramSource source = ParseShader("src/res/shaders/Basic.shader");
-
+    
     unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
 

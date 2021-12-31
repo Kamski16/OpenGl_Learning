@@ -5,6 +5,16 @@
 #include <string>
 #include <sstream>
 
+static void GLClearError() {
+    while (!glGetError());
+}
+
+static void GLCheckError() {
+    while (GLenum error = glGetError()) {
+    std::cout << error << "\n";
+    }
+}
+
 struct ShaderProgramSource {
     std::string VertexSource;
     std::string FragmentSource;
@@ -94,6 +104,8 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    glfwSwapInterval(1);
+
     if (glewInit() != GLEW_OK) {
         std::cout << "err";
     }
@@ -101,30 +113,69 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << "\n";
 
-    float positions[6] = {
-        -0.5f,-0.5f,0.5f,0.5f,0.5f,-0.5f
+    float positions[] = {
+       -0.5f, -0.5f,
+        0.5f, -0.5f,
+        0.5f,  0.5f,
+       -0.5f,  0.5f,
     };
+
+    unsigned int indicies[] =
+    {
+        0 , 1 , 2,
+        2 , 3 , 0
+    };
+
 
     unsigned int buffer;
     glGenBuffers(1,&buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float),positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float),positions, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,2,GL_FLOAT, GL_FALSE , 2*sizeof(float),0);
+    
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
 
     ShaderProgramSource source = ParseShader("src/res/shaders/Basic.shader");
 
     unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
 
+    int location = glGetUniformLocation(shader,"u_Color");
+    
+
+    float r = 0.0f;
+    float d = 0.0f;
+    float increment = 0.05f;
+    float incrementd = 0.01f;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+        
 
-        glDrawArrays(GL_TRIANGLES , 0 , 3);
+        glUniform4f(location, r, d, 0.5f, 1.0f);
+
+
+        //GLClearError();
+        glDrawElements(GL_TRIANGLES, 6 , GL_UNSIGNED_INT, nullptr);
+        //GLCheckError();
+
+        if (r > 1.0f) {
+            increment = -0.05f;
+            incrementd = -0.01f;
+        }
+        else if (r < 0.0f) {
+            increment = 0.05f;
+            incrementd = 0.01f;
+        }
+        r += increment;
+        d += incrementd;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

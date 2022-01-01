@@ -5,14 +5,21 @@
 #include <string>
 #include <sstream>
 
+#define ASSERT(x) if(!(x)) __debugbreak();
+#define GLCall(x) GLClearError();\
+    x;\
+    ASSERT(GLLogCall(#x,__FILE__,__LINE__))
+
 static void GLClearError() {
-    while (!glGetError());
+    while (glGetError() != GL_NO_ERROR);
 }
 
-static void GLCheckError() {
+static bool GLLogCall(const char* function,const char* file, int line) {
     while (GLenum error = glGetError()) {
-    std::cout << error << "\n";
+        std::cout << error << " file: " << file << " line: " << line << "\n";
+        return false;
     }
+    return true;
 }
 
 struct ShaderProgramSource {
@@ -168,9 +175,9 @@ int main(void)
         glUniform4f(location, r, d, 0.5f, 1.0f);
 
 
-        //GLClearError();
-        glDrawElements(GL_TRIANGLES, 6 , GL_UNSIGNED_INT, nullptr);
-        //GLCheckError();
+
+        GLCall(glDrawElements(GL_TRIANGLES, 6 , GL_UNSIGNED_INT, nullptr));
+
 
         if (r > 1.0f) {
             increment = -0.05f;

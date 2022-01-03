@@ -14,6 +14,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+
+#include "Imgui/imgui.h"
+#include "Imgui/imgui_impl_glfw_gl3.h"
+
 int main(void)
 {
     GLFWwindow* window;
@@ -46,10 +50,10 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << "\n";
     {
         float positions[] = {
-           100.0f, 100.0f, 0.0f, 0.0f,
-           200.0f, 100.0f, 1.0f, 0.0f,
-           200.0f, 200.0f, 1.0f, 1.0f,
-           100.0f, 200.0f, 0.0f, 1.0f
+           -50.0f, -50.0f, 0.0f, 0.0f,
+            50.0f, -50.0f, 1.0f, 0.0f,
+            50.0f,  50.0f, 1.0f, 1.0f,
+           -50.0f,  50.0f, 0.0f, 1.0f
         };
 
         unsigned int indicies[] =
@@ -72,50 +76,60 @@ int main(void)
         IndexBuffer ib(indicies, 6);
 
         glm::mat4 proj = glm::ortho(0.0f,960.0f,0.0f,540.0f,-1.0f,1.0f);
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200,200,0));
-
-        glm::mat4 mvp = proj * view * model;
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         //shader.SetUniform4f("u_Color",0.8f,0.3f,0.2f,1.0f);
-        shader.SetUniformMat4f("u_MVP", mvp);
 
-
-        Texture texture("res/textures/MPAY.png");
+        Texture texture("res/textures/papiez.png");
         texture.Bind();
         shader.SetUniform1i("u_Texture",0);
 
         Renderer renderer;
 
-        float r = 0.0f;
-        float d = 0.0f;
-        float increment = 0.05f;
-        float incrementd = 0.01f;
+        ImGui::CreateContext();
+        ImGui_ImplGlfwGL3_Init(window, true);
+        ImGui::StyleColorsDark();
+
+        glm::vec3 translationA(200, 200, 0);
+        glm::vec3 translationB(400, 100, 0);
+
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
             renderer.Clear();
 
-            shader.Bind();
+            ImGui_ImplGlfwGL3_NewFrame();
+
             //shader.SetUniform4f("u_Color", r, d, 0.2f, 1.0f);
+            
 
-            renderer.Draw(va,ib,shader);
-
-
-            if (r > 1.0f) {
-                increment = -0.05f;
-                incrementd = -0.01f;
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+                glm::mat4 mvp = proj * view * model;
+                shader.SetUniformMat4f("u_MVP", mvp);
+                shader.Bind();
+                renderer.Draw(va, ib, shader);
             }
-            else if (r < 0.0f) {
-                increment = 0.05f;
-                incrementd = 0.01f;
-            }
-            r += increment;
-            d += incrementd;
 
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+                glm::mat4 mvp = proj * view * model;
+                shader.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);
+                renderer.Draw(va, ib, shader);
+            }
+
+            {
+                ImGui::SliderFloat3("TranslationA", &translationA.x, 0.0f, 960.0f);
+                ImGui::SliderFloat3("TranslationB", &translationB.x, 0.0f, 960.0f);
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            }
+            
+            ImGui::Render();
+            ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
 
@@ -123,6 +137,8 @@ int main(void)
             glfwPollEvents();
         }
     }
+    ImGui_ImplGlfwGL3_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }

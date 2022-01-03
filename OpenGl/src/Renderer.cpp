@@ -3,6 +3,7 @@
 #include <iostream>
 
 
+
 void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
@@ -17,6 +18,12 @@ bool GLLogCall(const char* function, const char* file, int line) {
 
 void Renderer::Clear() const{
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Renderer::SetClearColor() const
+{
+    GLCall(glClearColor(0.0f,0.0f,0.0f,1.0f));
+    GLCall(glClear(GL_COLOR_BUFFER_BIT));
 }
 
 void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const {
